@@ -1,4 +1,3 @@
-sql
 -- ══════════════════════════════════════════
 -- TechStore — Consultas Básicas SELECT
 -- Autor: Agustina Arambarri
