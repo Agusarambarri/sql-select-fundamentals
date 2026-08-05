@@ -11,5 +11,5 @@ Select * From sales;
 select customer_id, product_id, total_amount from sales;
 
 -- Consulta 3: Selección con alias en español para stakeholders
-Select order_date AS fecha_pedido, product_name as nombre_producto, quantity AS cantidad_unidades, FROM SALES;
+Select order_date AS fecha_pedido, product_name as nombre_producto, quantity AS cantidad_unidades FROM SALES;
 
