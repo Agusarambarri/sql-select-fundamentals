@@ -8,8 +8,8 @@ sql
 Select * From sales;
 
 -- Consulta 2: Selección de columnas específicas para finanzas
-select customer_id, product_id, total_amount from sales;
+Select customer_id, product_id, total_amount From sales;
 
 -- Consulta 3: Selección con alias en español para stakeholders
-Select order_date AS fecha_pedido, product_name as nombre_producto, quantity AS cantidad_unidades FROM SALES;
+Select order_date AS fecha_pedido, product_name AS nombre_producto, quantity AS cantidad_unidades From SALES;
 
