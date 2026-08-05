@@ -1,24 +1,49 @@
-DROP TABLE IF EXISTS sales;
+# sql-select-fundamentals
 
-CREATE TABLE sales (
-    order_id       INT,
-    order_date     DATE,
-    customer_id    INT,
-    product_id     INT,
-    product_name   VARCHAR(100),
-    category       VARCHAR(50),
-    quantity       INT,
-    unit_price     DECIMAL(10,2),
-    total_amount   DECIMAL(10,2)
-);
+Consultas básicas SELECT y alias — TechStore
+**Autora:** Agustina Arambarri | **Fecha:** 05/08/2026
 
-INSERT INTO sales VALUES (1001, '2024-01-05', 201, 301, 'Laptop Pro 15',      'Computación', 2, 1200.00, 2400.00);
-INSERT INTO sales VALUES (1002, '2024-01-08', 202, 302, 'Mouse Inalámbrico',  'Accesorios',  5,   28.00,  140.00);
-INSERT INTO sales VALUES (1003, '2024-01-12', 203, 303, 'Monitor 4K 27"',     'Computación', 1,  450.00,  450.00);
-INSERT INTO sales VALUES (1004, '2024-01-15', 201, 304, 'Teclado Mecánico',   'Accesorios',  3,   95.00,  285.00);
-INSERT INTO sales VALUES (1005, '2024-02-03', 204, 305, 'Auriculares BT Pro', 'Audio',       2,  120.00,  240.00);
-INSERT INTO sales VALUES (1006, '2024-02-10', 202, 301, 'Laptop Pro 15',      'Computación', 1, 1200.00, 1200.00);
-INSERT INTO sales VALUES (1007, '2024-02-18', 205, 306, 'SSD Externo 1TB',    'Almacenamiento', 3, 130.00, 390.00);
-INSERT INTO sales VALUES (1008, '2024-03-05', 203, 302, 'Mouse Inalámbrico',  'Accesorios',  8,   28.00,  224.00);
-INSERT INTO sales VALUES (1009, '2024-03-12', 204, 303, 'Monitor 4K 27"',     'Computación', 2,  450.00,  900.00);
-INSERT INTO sales VALUES (1010, '2024-03-20', 205, 304, 'Teclado Mecánico',   'Accesorios',  4,   95.00,  380.00);
+---
+
+## 1. ¿Por qué es mala práctica usar `SELECT *` en producción?
+
+**Rendimiento.** Pedir todas las columnas obliga a la base a leer, procesar y enviar datos que después se descartan. El equipo de finanzas necesita 3 columnas de las 9 que tiene `sales`: las otras 6 viajan al pedo.
+
+```sql
+SELECT * FROM sales;                                        -- 9 columnas
+SELECT customer_id, product_id, total_amount FROM sales;    -- 3 columnas
+```
+
+Con 10 filas no se nota. Con millones de registros y columnas de texto largo, se traduce en consultas lentas y más costo de infraestructura.
+
+**Mantenibilidad.** `SELECT *` devuelve lo que la tabla tenga al momento de ejecutarse, no lo que tenía cuando escribiste la consulta. Si alguien agrega una columna, tu reporte la incorpora sin avisar; si alguien la elimina o renombra, el proceso se rompe. Nombrando las columnas, la consulta declara qué necesita y falla con un error claro en vez de arrastrar el problema hasta el dashboard.
+
+**Seguridad.** Si mañana a `sales` le agregan el email o el documento del cliente, todo reporte con `SELECT *` empieza a incluirlo automáticamente. Nombrar columnas es exposición mínima: solo sale lo que decidiste que salga.
+
+> `SELECT *` sirve para explorar una tabla que no conocés. En cualquier consulta que quede escrita en un reporte o un pipeline, las columnas van nombradas una por una.
+
+---
+
+## 2. ¿Por qué son importantes los alias para un stakeholder no técnico?
+
+Los nombres de columna están escritos para el motor y para quien programa: técnicos, en inglés, abreviados. Quien recibe el reporte no conoce el esquema ni tiene por qué conocerlo. La cláusula `AS` renombra la columna solo en el resultado, sin tocar la tabla.
+
+**Ejemplo con `total_amount`:**
+
+| order_date | product_name | quantity | total_amount |
+|---|---|---|---|
+| 2024-01-05 | Laptop Pro 15 | 2 | 2400.00 |
+
+Frente a `total_amount`, finanzas tiene que preguntar: ¿es el total del pedido o de esta línea? ¿Incluye IVA? El nombre técnico no lo aclara, y la duda vuelve al analista.
+
+```sql
+SELECT total_amount AS monto_total FROM sales;
+```
+
+| fecha_pedido | nombre_producto | cantidad_unidades | monto_total |
+|---|---|---|---|
+| 2024-01-05 | Laptop Pro 15 | 2 | 2400.00 |
+
+`total_amount` pasó de ser un campo que hay que interpretar a `monto_total`: una etiqueta que cualquiera del área entiende sin consultar a nadie. Además, si estos datos se exportan a Excel o Power BI, los encabezados ya vienen listos y no hay que renombrarlos en cada actualización.
+
+**Siempre `snake_case`:** `AS Monto Total` da error de sintaxis y `AS "Monto Total"` obliga a usar comillas en toda referencia posterior. Minúsculas, sin acentos, guion bajo.
